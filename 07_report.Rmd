@@ -1,0 +1,85 @@
+---
+title: "Winter school of System Analysis and AI"
+author: "Yurii Kleban"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+interviews <- read_csv("data/SAFI_clean.csv", na = "NULL") 
+```
+
+![](img/safi.png)
+
+
+## Introduction
+
+This report uses the **tidyverse** package along with the *SAFI* dataset, which has columns that include:
+
+- village
+  + Name of village
+- interview_date
+  + Date of interview
+- no_members
+  + How many family members lived in a house
+- years_liv
+  + How many years respondent has lived in village or neighbouring village
+- respondent_wall_type
+  + Type of wall of house
+- rooms
+  + Number of rooms in house
+
+
+```{r echo=F, message=F}
+interviews %>%
+    filter(!is.na(memb_assoc)) %>%
+    group_by(village, memb_assoc) %>%
+    summarize(mean_no_membrs = mean(no_membrs)) %>%
+    knitr::kable(caption = "We can also add a caption.", 
+               col.names = c("Village", "Member Association", 
+                             "Mean Number of Members"))
+```
+
+
+Text text
+
+```{r echo=F}
+library(ggthemes)
+
+interviews_plotting <- read_csv("data_output/interviews_plotting.csv")
+
+percent_items <- interviews_plotting %>%
+  group_by(village) %>%
+  summarize(across(bicycle:no_listed_items, ~ sum(.x) / n() * 100)) %>%
+  pivot_longer(bicycle:no_listed_items, names_to = "items", values_to = "percent")
+percent_items
+
+percent_items %>%
+  ggplot(aes(x = village, y = percent, fill = village)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ items) +
+  labs(title = "Percent of respondents in each village who owned each item",
+       x = "Village",
+       y = "Percent of Respondents") +
+  theme_excel_new() +
+  scale_fill_excel_new()
+
+```
+
+```{r}
+data <- interviews |>
+  select(village) |>
+  group_by(village) |>
+  summarise(count = n())
+data
+```
+In village **Chirodzo** live `r data |> filter(village == "Chirodzo") |> select(count)` people.
+
+---
+&copy; Yurii Kleban
+
